@@ -1,75 +1,56 @@
-function [d, Error, ConfusionMatrix] = Exercise2(dMax)
-% clear
-clear; close all; clc;
-
-
-%%
+function [D, Error, ConfusionMatrix] = Exercise2(dMax)
+%% load image and some init values
 % load training data
 images = loadMNISTImages('train-images.idx3-ubyte');
 labels = loadMNISTLabels('train-labels.idx1-ubyte');
 % load test data
 imagesTest = loadMNISTImages('t10k-images.idx3-ubyte');
 labelsTest = loadMNISTLabels('t10k-labels.idx1-ubyte');
-% d low dimensional space
-d = 15;
 % nubmer of test samples
 N = size(labelsTest, 1);
 % number of labels
 kindeOfLabels = 10;
-% for each test input kindOfLables number of pdf (matrix form)
-PDFtemp = zeros(kindeOfLabels, 1);
 % labels out of our classifier
 labelsOutput = zeros(N, 1);
+% init error vector
+error = zeros(dMax, 1);
+% init ConfusionMatrix cells
+ConfusionMatrix = cell(dMax, 1);
 
 %% 
 % zero mean
 imagesMean = mean(images, 2);
-imagesZeroMean = images - imagesMean;
+imagesZeroMean = images - repmat(imagesMean,1,size(images, 2));
+imagesTestZeroMean = imagesTest - repmat(imagesMean,1,size(imagesTest, 2));
 % covariance
 imagesCOV = cov(imagesZeroMean');
-% eigenvalues and eigenvectors
-[eigenVectors, eigenValues] = eig(imagesCOV);
-eigenValues = diag(eigenValues);
-% d highest eigenvlues
-[eigenValuesSort, eigenValuesIndex] = sort(eigenValues, 'descend');
-eigenValuesIndex = eigenValuesIndex(1:d);
-% d highest eigenvactors
-eigenVectorsDhighest = eigenVectors(:, eigenValuesIndex);
-% reduced dimensional data
-imagesPCA = eigenVectorsDhighest'*images;
 
-%%
-% calculate the mean and covariance of each digit class
-% save the images of same digit in first cell, mean in second, covariance
-% in third
-imagesEachDigit = cell(kindeOfLabels, 3);
-% [labelsSort, labelsIndex] = sort(labels);
-for i=1:kindeOfLabels
-    imagesEachDigit{i, 1} = imagesPCA(:, find(labels==(i-1)));
-    imagesEachDigit{i, 2} = mean(imagesEachDigit{i, 1}, 2);
-    imagesEachDigit{i, 3} = cov(imagesEachDigit{i, 1}');
-end
+%% loop part
+for d = 1:dMax
+    [eigenVectorsDhighest,h]=eigs(imagesCOV,d);
+    imagesPCA = eigenVectorsDhighest'*images;
 
-%%
-% loop of N to test each testImages
-for j = 1:N
-    % for a novel test input
-    % zero mean
-    testImageZeroMean = imagesTest(:, j) - imagesMean;
-    % project on the leared bias
-    testImagePCA = eigenVectorsDhighest'*testImageZeroMean;
-    % calculate likelihood
+  
+    % new solution without loop
+    % init matrix eachDigit
+    eachDigit = zeros(size(imagesTest, 2), kindeOfLabels);
+    imagesTestPCA = eigenVectorsDhighest'*imagesTest;
     for i = 1:kindeOfLabels
-        PDFtemp(i) = mvnpdf(testImagePCA, imagesEachDigit{i, 2}, imagesEachDigit{i, 3});
+        eachDigitMean = mean(imagesPCA(:, labels' == (i-1)), 2);
+        eachDigitCOV = cov(imagesPCA(:, labels' == (i-1))');
+        eachDigit(:, i) = mvnpdf(imagesTestPCA', eachDigitMean', eachDigitCOV);
     end
-    [PDFtempMax, PDFtempMaxIndex] = max(PDFtemp);
-    % labels based on our classifier
-    labelsOutput(j) = PDFtempMaxIndex - 1;
+    [nouse, labelsOutput] = max(eachDigit');
+    labelsOutput = (labelsOutput-1)';
 
+    % print clasification error
+%     fprintf('\nFor d = %f error is: %f\n',d, (1 - mean(double(labelsOutput == labelsTest))) * 100);
+    ConfusionMatrix{d} = confusionmat(labelsTest, labelsOutput);
+    error(d) = (1 - mean(double(labelsOutput == labelsTest))) * 100;
 end
-% print clasification error
-fprintf('\nTraining Set Error: %f\n', (1 - mean(double(labelsOutput == labelsTest))) * 100);
-ConfusionMatrix = confusionmat(labelsTest, labelsOutput);
-% helperDisplayConfusionMatrix(ConfusionMatrix);
 
+% output
+[Error, D] = min(error);
+ConfusionMatrix = ConfusionMatrix{D};
+plot(error, 'r-');
 end
