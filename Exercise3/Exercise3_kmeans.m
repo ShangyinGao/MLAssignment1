@@ -1,5 +1,5 @@
 function Exercise3_kmeans(gesture_l, gesture_o, gesture_x, ... 
-    init_cluster_l, init_cluster_o, init_cluster_x)
+    init_cluster_l, init_cluster_o, init_cluster_x, k)
 %% 
 label_gesture_l = zeros(size(gesture_l, 1), size(gesture_l, 2));
 label_gesture_o = zeros(size(gesture_o, 1), size(gesture_o, 2));
@@ -35,7 +35,7 @@ while decrement_of_distortion_l > end_condition || decrement_of_distortion_o > e
     end
 
     % M-step
-    for i = 1:7
+    for i = 1:k
         for j = 1:3
             % if the end condition for gesture_l hold, than do nothing
             if(decrement_of_distortion_l > end_condition)
@@ -82,21 +82,21 @@ while decrement_of_distortion_l > end_condition || decrement_of_distortion_o > e
 % 1st cluster with blue
 figure (1);
 color = {'bx', 'kx', 'rx', 'gx', 'mx', 'yx', 'cx'};
-for i = 1:7
+for i = 1:k
     temp_x = gesture_l(:, :, 1); temp_x = temp_x(label_gesture_l == i); 
     temp_y = gesture_l(:, :, 2); temp_y = temp_y(label_gesture_l == i); 
     plot(temp_x, temp_y, color{i}); hold on;
 end
 
 figure (2);
-for i = 1:7
+for i = 1:k
     temp_x = gesture_o(:, :, 1); temp_x = temp_x(label_gesture_o == i); 
     temp_y = gesture_o(:, :, 2); temp_y = temp_y(label_gesture_o == i); 
     plot(temp_x, temp_y, color{i}); hold on;
 end
 
 figure (3);
-for i = 1:7
+for i = 1:k
     temp_x = gesture_x(:, :, 1); temp_x = temp_x(label_gesture_x == i); 
     temp_y = gesture_x(:, :, 2); temp_y = temp_y(label_gesture_x == i); 
     plot(temp_x, temp_y, color{i}); hold on;

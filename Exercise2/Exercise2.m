@@ -44,7 +44,7 @@ for d = 1:dMax
     labelsOutput = (labelsOutput-1)';
 
     % print clasification error
-%     fprintf('\nFor d = %f error is: %f\n',d, (1 - mean(double(labelsOutput == labelsTest))) * 100);
+    fprintf('\nFor d = %f error is: %f\n',d, (1 - mean(double(labelsOutput == labelsTest))) * 100);
     ConfusionMatrix{d} = confusionmat(labelsTest, labelsOutput);
     error(d) = (1 - mean(double(labelsOutput == labelsTest))) * 100;
 end

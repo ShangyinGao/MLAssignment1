@@ -47,6 +47,7 @@ for j=1:p1
 end
 
 [noMean, minIndex] = min(ErrorPosition);
+P1 = minIndex;
 parXYOpt = parXYFinal{minIndex};
 
 % find the optimal value for p2
@@ -88,8 +89,9 @@ for l=1:p2
 end
 
 [noMean, minIndex] = min(ErrorOrientation);
+P2 = minIndex;
 parThetaOpt = parThetaFinal{minIndex};
 
 par = {parXYOpt(:, 1), parXYOpt(:, 2), parThetaOpt};
-% par = {ErrorPosition, ErrorOrientation};
+fprintf('\nOptimal value for p1 = %d, p2 = %d\n', P1, P2);
 end
